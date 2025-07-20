@@ -11,7 +11,7 @@ from sklearn.metrics import classification_report, roc_auc_score, accuracy_score
 from agent import DQN
 from env import FraudDetectionEnv
 
-# ——— 1. VERİYİ YÜKLE ———
+# Veri yüklemesi
 df = pd.read_excel('data/duzenli_veri.xlsx')
 df = df.dropna(subset=['Class'])
 
@@ -26,7 +26,7 @@ _, X_test, _, y_test = train_test_split(
 X_test = X_test.reset_index(drop=True)
 y_test = y_test.reset_index(drop=True)
 
-# ——— 2. MODELİ YÜKLE ———
+# Model
 device = torch.device('cpu')
 n_features = X_test.shape[1]
 n_actions  = 2
@@ -36,7 +36,7 @@ policy_net.load_state_dict(torch.load("model_dqn.pt", map_location=device))
 policy_net.eval()
 print("✅ Eğitilmiş model yüklendi.")
 
-# ——— 3. TEST ———
+# Test Aşaması
 env_test = FraudDetectionEnv(X_test, y_test)
 state = env_test.reset()
 preds, trues = [], []
@@ -51,7 +51,7 @@ while not done:
     trues.append(info['true_label'])
     state = next_state
 
-# ——— 4. METRİKLERİ YAZDIR ———
+# Performans metrikleri
 report = classification_report(trues, preds, digits=4)
 roc_auc = roc_auc_score(trues, preds)
 accuracy = accuracy_score(trues, preds)
@@ -60,7 +60,7 @@ print(report)
 print("ROC AUC:", roc_auc)
 print(f"Accuracy: {accuracy:.4f} → %{accuracy * 100:.2f}")
 
-# ——— 5. TKINTER ARAYÜZ ———
+# Tkinter Arayüz
 df_results = X_test.copy()
 df_results["pred"] = preds
 df_results["true"] = trues
@@ -71,15 +71,15 @@ root = tk.Tk()
 root.title("Fraud Detection - Test Arayüzü")
 root.geometry("750x700")
 
-# Başlık
+
 label = tk.Label(root, text="Test Sonuçları", font=("Arial", 16, "bold"))
 label.pack(pady=5)
 
-# Doğruluk
+# Doğruluk oranı
 acc_label = tk.Label(root, text=f"Doğruluk: %{accuracy * 100:.2f}", font=("Arial", 12))
 acc_label.pack()
 
-# Tablo
+# Tablo alanı
 tree = ttk.Treeview(root, columns=columns_to_show, show="headings", height=18)
 for col in columns_to_show:
     tree.heading(col, text=col)
@@ -87,10 +87,10 @@ for col in columns_to_show:
 
 tree.pack()
 
-# Yanlış tahminleri kırmızı göster
+
 tree.tag_configure("wrong", background="misty rose")
 
-# Gösterme fonksiyonları
+# Tüm tahminler
 def show_all():
     tree.delete(*tree.get_children())
     for _, row in df_results.iterrows():
@@ -99,6 +99,7 @@ def show_all():
         tag = "wrong" if is_wrong else ""
         tree.insert("", tk.END, values=vals, tags=(tag,))
 
+# Fraud olarak işaretlenen tahminler
 def show_frauds():
     tree.delete(*tree.get_children())
     for _, row in df_results.iterrows():
@@ -130,6 +131,6 @@ txt.insert(tk.END, f"ROC AUC: {roc_auc:.4f}\n")
 txt.insert(tk.END, f"Accuracy: %{accuracy * 100:.2f}\n")
 txt.config(state="disabled")
 
-# Açılışta tümünü göster
+
 show_all()
 root.mainloop()

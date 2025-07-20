@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from agent import DQN, ReplayMemory, Transition
 from env import FraudDetectionEnv
 
-# ——— 1. VERİYİ YÜKLE ———
+# Veri
 df = pd.read_excel('data/duzenli_veri.xlsx')
 df = df.dropna(subset=['Class'])
 
@@ -23,11 +23,11 @@ X_train, _, y_train, _ = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
 
-# 🔄 ALT KÜME YOK! TAM VERİ KULLANILIYOR
+
 X_train = X_train.reset_index(drop=True)
 y_train = y_train.reset_index(drop=True)
 
-# ——— 2. ORTAM ———
+# Ortam başlatılır
 env = FraudDetectionEnv(X_train, y_train)
 n_features = X_train.shape[1]
 n_actions  = 2
@@ -41,15 +41,17 @@ target_net.eval()
 memory    = ReplayMemory(capacity=10000)
 optimizer = optim.Adam(policy_net.parameters(), lr=1e-3)
 
+# ε-greedy parametreleri
 eps_start, eps_end, eps_decay = 1.0, 0.05, 5000
 steps_done = 0
 gamma      = 0.99
 batch_size = 64
 
+# Kayıtlar
 all_losses = []
 all_rewards = []
 
-# ——— 3. EYLEM SEÇİMİ ———
+# Eylem Fonksiyonu
 def select_action(state):
     global steps_done
     eps_threshold = eps_end + (eps_start - eps_end) * np.exp(-1. * steps_done / eps_decay)
@@ -60,7 +62,7 @@ def select_action(state):
         state_t = torch.from_numpy(state).float().unsqueeze(0).to(device)
         return policy_net(state_t).argmax().item()
 
-# ——— 4. MODELİ OPTİMİZE ET ———
+# Model optimize edilir
 def optimize_model():
     if len(memory) < batch_size:
         return None
@@ -84,7 +86,7 @@ def optimize_model():
     
     return loss.item()
 
-# ——— 5. EĞİTİM ———
+# Eğitim
 num_episodes = 50
 for ep in range(num_episodes):
     state = env.reset()
@@ -108,7 +110,7 @@ for ep in range(num_episodes):
     all_rewards.append(total_reward)
     print(f"Episode {ep+1}: Total Reward = {total_reward:.2f}, Avg Loss = {avg_loss:.4f}")
 
-# ——— 6. GRAFİKLERİ GÖSTER ———
+# Grafikler
 plt.figure(figsize=(12, 5))
 
 plt.subplot(1, 2, 1)
@@ -126,6 +128,6 @@ plt.ylabel("Loss")
 plt.tight_layout()
 plt.show()
 
-# ——— 7. MODELİ KAYDET ———
+# Model kaydedilir
 torch.save(policy_net.state_dict(), "model_dqn.pt")
 print("✅ Eğitim tamamlandı. Model 'model_dqn.pt' olarak kaydedildi.")

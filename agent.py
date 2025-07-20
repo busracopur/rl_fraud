@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import namedtuple, deque
 
-# Transition ve ReplayMemory
+# Ajanın her adımdaki bilgisini tutmak için kullanılan yapı
 Transition = namedtuple('Transition', ('state','action','reward','next_state','done'))
 
 class ReplayMemory:

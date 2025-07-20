@@ -15,17 +15,17 @@ class FraudDetectionEnv:
     def step(self, action: int):
         label = self.y.iloc[self.current_step]
 
-        # Güncellenmiş ödül sistemi
-        if action == 1:  # 'fraud' dendi
+        # Ödül Sistemi
+        if action == 1:  # 'fraud' denirse
             if label == 1:
-                reward = 5.0     # ✅ Doğru fraud → yüksek ödül
+                reward = 5.0     #  Doğru fraud 
             else:
-                reward = -1.0    # ❌ Yanlış alarm → küçük ceza
-        else:  # 'normal' dendi
+                reward = -1.0    #  Yanlış alarm 
+        else:  # 'normal' denirse
             if label == 1:
-                reward = -5.0    # ❌ Fraud kaçtı → ağır ceza
+                reward = -5.0    # Fraud kaçtı 
             else:
-                reward = +0.5    # ✅ Doğru normal → az ödül
+                reward = +0.5    #  Doğru normal 
 
         self.current_step += 1
         done = self.current_step >= self.n_samples
